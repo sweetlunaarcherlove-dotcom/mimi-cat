@@ -1,0 +1,437 @@
+
+
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>咪咪的暖暖小屋</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{margin:0;background:#fff1eb;color:#825c55;font-family:-apple-system,"PingFang SC",sans-serif}
+
+main{max-width:480px;margin:auto;padding:18px}
+
+h1{font-size:25px;margin:8px 0 18px}
+
+.room{height:310px;border:5px solid white;border-radius:28px;background:linear-gradient(#ffe3da 70%,#e9bfab 70%);position:relative;overflow:hidden;text-align:center}
+
+.window{position:absolute;top:25px;left:22px;background:#cde9ee;border:8px solid #fff9ed;border-radius:45px 45px 10px 10px;width:80px;height:100px}
+
+.shelf{position:absolute;right:20px;top:40px;font-size:28px}
+
+.bed{position:absolute;bottom:18px;left:12%;width:76%;height:70px;border-radius:50%;background:#e7a4b3;border:12px solid #f7c8d0}
+
+.cat{position:absolute;bottom:34px;width:100%;font-size:135px;cursor:pointer;user-select:none}
+
+.cat:active{transform:scale(1.08)}
+
+.bubble{background:#fffaf7;border-radius:17px;padding:15px;text-align:center;margin:14px 0;min-height:50px}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+
+.stat{font-size:13px}
+
+.track{height:9px;background:#ead7d1;border-radius:12px;margin-top:7px;overflow:hidden}
+
+.fill{height:100%;background:#e7a0a8;border-radius:12px}
+
+.tabs,.actions{display:grid;gap:9px;margin:15px 0}
+
+.tabs{grid-template-columns:repeat(3,1fr)}
+
+.actions{grid-template-columns:1fr 1fr}
+
+button{border:0;border-radius:14px;padding:14px 5px;background:white;color:#825c55;font-size:15px;font-weight:bold;cursor:pointer}
+
+.tabs button{background:#f4d8d0}
+
+.tabs .active,.actions button:first-child{background:#e5a0a7;color:white}
+
+.wide{grid-column:span 2}
+
+.hidden{display:none}
+
+.item{display:flex;justify-content:space-between;align-items:center;background:white;border-radius:13px;padding:12px;margin:9px 0}
+
+.item button{background:#f3d4cf;padding:9px}
+
+.item button:disabled{opacity:.4}
+
+small{color:#ac8d85}
+
+</style>
+
+</head>
+
+<body>
+
+<main>
+
+<small>MI MI · VIRTUAL PET</small>
+
+<h1>🐾 咪咪的暖暖小屋</h1>
+
+<p>🪙 小鱼币：<b id="coins">20</b></p>
+
+<div class="room" id="room">
+
+<div class="window">🌙</div>
+
+<div class="shelf">🪴📚</div>
+
+<div class="bed"></div>
+
+<div class="cat" onclick="act('pet')">
+
+<span id="cat">🐱</span>
+
+<span id="bow"></span>
+
+</div>
+
+</div>
+
+<div class="bubble" id="message"></div>
+
+<p style="text-align:center" id="level"></p>
+
+<div class="stats" id="stats"></div>
+
+<div class="tabs">
+
+<button onclick="tab('home')" id="t-home">🐾 照顾</button>
+
+<button onclick="tab('shop')" id="t-shop">🎀 商店</button>
+
+<button onclick="tab('diary')" id="t-diary">📖 日记</button>
+
+</div>
+
+<section id="home">
+
+<div class="actions">
+
+<button onclick="act('feed')">🐟 喂小鱼干</button>
+
+<button onclick="act('pet')">💕 摸摸头</button>
+
+<button onclick="act('play')">🧶 陪它玩</button>
+
+<button onclick="act('sleep')">🌙 哄它睡觉</button>
+
+<button class="wide" onclick="act('treat')">🍪 小零食（剩余 <span id="treats"></span> 份）</button>
+
+</div>
+
+<p style="text-align:center;font-size:12px">陪咪咪玩一次，获得5枚小鱼币 ✨</p>
+
+</section>
+
+<section id="shop" class="hidden">
+
+<div id="items"></div>
+
+</section>
+
+<section id="diary" class="hidden">
+
+<h3>📖 咪咪的成长日记</h3>
+
+<div id="logs"></div>
+
+</section>
+
+<p style="text-align:center;font-size:12px">💗 本浏览器自动保存咪咪的成长记录</p>
+
+</main>
+
+<script>
+
+const key="mimi-home-v1";
+
+const fresh=()=>({
+
+ full:65,happy:75,energy:80,love:0,
+
+ coins:20,treats:2,bow:false,
+
+ room:"pink",sleeping:false,
+
+ message:"喵呜～咪咪正在等你陪它玩！",
+
+ logs:[]
+
+});
+
+let s;
+
+try{s=JSON.parse(localStorage.getItem(key))||fresh()}
+
+catch(e){s=fresh()}
+
+let current="home";
+
+const el=id=>document.getElementById(id);
+
+const clamp=n=>Math.max(0,Math.min(100,n));
+
+function say(m){
+
+ s.message=m;
+
+ s.logs.unshift(m);
+
+ s.logs=s.logs.slice(0,30);
+
+}
+
+function act(a){
+
+ if(s.sleeping&&a!=="sleep"){
+
+  s.sleeping=false;
+
+  say("咪咪醒啦！伸了一个懒腰～ ☀️");
+
+  render();return;
+
+ }
+
+ if(a==="feed"){
+
+  s.full=clamp(s.full+24);
+
+  s.happy=clamp(s.happy+5);
+
+  s.love=clamp(s.love+3);
+
+  say("吧唧吧唧！小鱼干真香！🐟");
+
+ }
+
+ if(a==="pet"){
+
+  s.happy=clamp(s.happy+12);
+
+  s.love=clamp(s.love+9);
+
+  say("呼噜呼噜～咪咪蹭了蹭你的手！💕");
+
+ }
+
+ if(a==="play"){
+
+  if(s.energy<10){
+
+   say("咪咪累啦，先睡一觉吧～");
+
+   render();return;
+
+  }
+
+  s.happy=clamp(s.happy+19);
+
+  s.energy=clamp(s.energy-16);
+
+  s.full=clamp(s.full-9);
+
+  s.love=clamp(s.love+12);
+
+  s.coins+=5;
+
+  say("咪咪追到了毛线球！🧶 +5小鱼币");
+
+ }
+
+ if(a==="sleep"){
+
+  s.sleeping=true;
+
+  s.energy=clamp(s.energy+35);
+
+  s.happy=clamp(s.happy+5);
+
+  say("咪咪钻进小窝睡着啦。💤");
+
+ }
+
+ if(a==="treat"){
+
+  if(s.treats<1){
+
+   say("零食吃光啦！去商店看看吧～");
+
+   render();return;
+
+  }
+
+  s.treats--;
+
+  s.full=clamp(s.full+12);
+
+  s.happy=clamp(s.happy+10);
+
+  s.love=clamp(s.love+5);
+
+  say("咪咪开心地吃起小零食！🍪");
+
+ }
+
+ render();
+
+}
+
+const goods=[
+
+ ["treat","🍪 小零食",10],
+
+ ["bow","🎀 小蝴蝶结",25],
+
+ ["blue","🩵 蓝色小屋",30],
+
+ ["cream","🍮 奶油小屋",30],
+
+ ["pink","🌸 粉色小屋",20]
+
+];
+
+function buy(id){
+
+ const g=goods.find(x=>x[0]===id);
+
+ if(!g||s.coins<g[2])return;
+
+ if(id==="bow"&&s.bow)return;
+
+ if(["blue","cream","pink"].includes(id)&&s.room===id)return;
+
+ s.coins-=g[2];
+
+ if(id==="treat")s.treats++;
+
+ else if(id==="bow")s.bow=true;
+
+ else s.room=id;
+
+ say("咪咪收到新礼物啦！🎁");
+
+ render();
+
+}
+
+function tab(t){current=t;render()}
+
+function render(){
+
+ try{localStorage.setItem(key,JSON.stringify(s))}
+
+ catch(e){}
+
+ el("coins").textContent=s.coins;
+
+ el("treats").textContent=s.treats;
+
+ el("message").textContent=s.message;
+
+ el("cat").textContent=s.sleeping?"😽":"🐱";
+
+ el("bow").textContent=s.bow?"🎀":"";
+
+ el("level").textContent="💗 亲密等级 Lv."+
+
+ (1+Math.floor(s.love/25));
+
+ el("room").style.background=
+
+ s.room==="blue"?"linear-gradient(#dbeefb 70%,#b9d6e8 70%)":
+
+ s.room==="cream"?"linear-gradient(#fff1d6 70%,#e6c99e 70%)":
+
+ "linear-gradient(#ffe3da 70%,#e9bfab 70%)";
+
+ el("stats").innerHTML=[
+
+  ["🐟 饱腹值",s.full],
+
+  ["🌷 心情值",s.happy],
+
+  ["⚡ 活力值",s.energy],
+
+  ["💗 亲密度",s.love]
+
+ ].map(([name,value])=>
+
+  '<div class="stat">'+name+' '+value+
+
+  '/100<div class="track"><div class="fill" style="width:'+
+
+  value+'%"></div></div></div>'
+
+ ).join("");
+
+ for(const t of ["home","shop","diary"]){
+
+  el(t).classList.toggle("hidden",t!==current);
+
+  el("t-"+t).classList.toggle("active",t===current);
+
+ }
+
+ el("items").innerHTML=goods.map(([id,name,cost])=>{
+
+  const owned=id==="bow"?s.bow:
+
+   id==="treat"?false:s.room===id;
+
+  return '<div class="item"><span>'+name+
+
+   ' · 🪙 '+cost+'</span><button '+
+
+   (owned||s.coins<cost?'disabled':'')+
+
+   ' onclick="buy(\''+id+'\')">'+
+
+   (owned?'已拥有':'购买')+'</button></div>';
+
+ }).join("");
+
+ el("logs").replaceChildren();
+
+ if(s.logs.length===0){
+
+  el("logs").textContent="还没有记录，快去陪咪咪玩吧！";
+
+ }else{
+
+  for(const message of s.logs){
+
+   const p=document.createElement("p");
+
+   p.className="item";
+
+   p.textContent=message;
+
+   el("logs").appendChild(p);
+
+  }
+
+ }
+
+}
+
+render();
+
+</script>
+
+</body>
+
+</html>
