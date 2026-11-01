@@ -30,9 +30,19 @@ h1{font-size:25px;margin:8px 0 18px}
 
 .bed{position:absolute;bottom:18px;left:12%;width:76%;height:70px;border-radius:50%;background:#e7a4b3;border:12px solid #f7c8d0}
 
-.cat{position:absolute;bottom:34px;width:100%;font-size:135px;cursor:pointer;user-select:none}
+.cat{position:absolute;bottom:30px;left:50%;width:270px;max-width:100%;height:210px;padding:0;background:transparent;transform:translateX(-50%);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
 
-.cat:active{transform:scale(1.08)}
+.cat:active{transform:translateX(-50%) scale(1.04)}
+.cat:focus-visible{outline:3px solid #bb657d;outline-offset:3px}
+.cat svg{display:block;width:100%;height:100%;overflow:visible}
+.cat-tail{transform-origin:204px 142px;animation:tail-wag 2.4s ease-in-out infinite}
+.cat .sleep-eyes,.cat .sleep-mark{display:none}
+.cat.sleeping .open-eyes{display:none}
+.cat.sleeping .sleep-eyes,.cat.sleeping .sleep-mark{display:inline}
+.cat.sleeping .cat-tail{animation-duration:6s}
+#bow{position:absolute;left:105px;top:117px;font-size:29px;line-height:1;pointer-events:none}
+@keyframes tail-wag{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(13deg)}}
+@media(prefers-reduced-motion:reduce){.cat-tail{animation:none}}
 
 .bubble{background:#fffaf7;border-radius:17px;padding:15px;text-align:center;margin:14px 0;min-height:50px}
 
@@ -90,13 +100,47 @@ small{color:#ac8d85}
 
 <div class="bed"></div>
 
-<div class="cat" onclick="act('pet')">
+<button type="button" class="cat" onclick="act('pet')" aria-label="摸摸咪咪的头">
 
-<span id="cat">🐱</span>
+<svg id="cat" viewBox="0 0 270 210" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#bc7139" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g class="cat-tail">
+      <path d="M202 148 C247 153 257 111 238 94" fill="none" stroke="#bc7139" stroke-width="23"/>
+      <path d="M202 148 C247 153 257 111 238 94" fill="none" stroke="#f6ac50" stroke-width="17"/>
+      <path d="M243 104 L252 108 M242 122 L251 126" fill="none" stroke="#dc893b" stroke-width="5"/>
+    </g>
+    <rect x="81" y="162" width="27" height="34" rx="13" fill="#e99a44"/>
+    <rect x="177" y="162" width="27" height="34" rx="13" fill="#e99a44"/>
+    <ellipse cx="145" cy="143" rx="73" ry="46" fill="#f6ac50"/>
+    <ellipse cx="142" cy="154" rx="43" ry="28" fill="#ffdfaa" stroke="none"/>
+    <path d="M188 118 l12 7 M194 134 l15 4" stroke="#db8738" stroke-width="6"/>
+    <rect x="105" y="166" width="28" height="33" rx="13" fill="#ffbf69"/>
+    <rect x="151" y="166" width="28" height="33" rx="13" fill="#ffbf69"/>
+    <path d="M114 190 v5 M123 190 v5 M160 190 v5 M169 190 v5" stroke="#d88c46" stroke-width="2"/>
+    <path d="M68 65 L66 22 Q67 14 75 20 L105 43 M139 43 L169 20 Q177 14 178 24 L176 70" fill="#f6ac50"/>
+    <path d="M76 46 L75 30 L92 44 M151 44 L168 30 L168 49" fill="#f3a4a1" stroke="none"/>
+    <ellipse cx="122" cy="81" rx="63" ry="49" fill="#ffbd66"/>
+    <path d="M109 36 l5 14 M123 34 v16 M137 36 l-5 14" stroke="#dc893b" stroke-width="5"/>
+    <ellipse cx="122" cy="100" rx="34" ry="22" fill="#ffe4bc" stroke="none"/>
+    <g class="open-eyes" fill="#523a30" stroke="none">
+      <ellipse cx="96" cy="78" rx="8" ry="11"/><ellipse cx="148" cy="78" rx="8" ry="11"/>
+      <circle cx="94" cy="74" r="3" fill="white"/><circle cx="146" cy="74" r="3" fill="white"/>
+    </g>
+    <g class="sleep-eyes" fill="none" stroke="#694735" stroke-width="4">
+      <path d="M86 80 Q96 90 106 80 M138 80 Q148 90 158 80"/>
+    </g>
+    <ellipse cx="81" cy="94" rx="10" ry="5" fill="#f3a4a1" stroke="none"/>
+    <ellipse cx="163" cy="94" rx="10" ry="5" fill="#f3a4a1" stroke="none"/>
+    <path d="M116 93 Q122 89 128 93 L122 100 Z" fill="#ed929b" stroke="#d57e85" stroke-width="2"/>
+    <path d="M122 100 v4 M111 104 Q116 112 122 104 Q128 112 133 104" fill="none" stroke="#80533c" stroke-width="2"/>
+    <path d="M63 88 l16 3 M62 100 l17 -3 M165 91 l17 -3 M165 97 l18 3" fill="none" stroke="#bc7139" stroke-width="2"/>
+  </g>
+  <text class="sleep-mark" x="190" y="45" fill="#9d7fa9" font-size="23" font-weight="bold">Z z</text>
+</svg>
 
 <span id="bow"></span>
 
-</div>
+</button>
 
 </div>
 
@@ -342,7 +386,7 @@ function render(){
 
  el("message").textContent=s.message;
 
- el("cat").textContent=s.sleeping?"😽":"🐱";
+ el("cat").closest(".cat").classList.toggle("sleeping",s.sleeping);
 
  el("bow").textContent=s.bow?"🎀":"";
 
@@ -435,3 +479,4 @@ render();
 </body>
 
 </html>
+
